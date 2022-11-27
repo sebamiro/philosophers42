@@ -14,7 +14,7 @@ NAME	=	philo
 
 MKFL	=	Makefile
 
-SRC		=	philosophers.c utils.c
+SRC		=	philosophers.c utils.c init.c error_handler.c simulation.c
 
 OBJS	=	$(SRC:.c=.o)
 

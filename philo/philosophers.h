@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   philo.h                                            :+:      :+:    :+:   */
+/*   philosophers.h                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: smiro <smiro@student.42barcelona>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/11/26 15:26:04 by smiro             #+#    #+#             */
-/*   Updated: 2022/11/26 15:26:05 by smiro            ###   ########.fr       */
+/*   Created: 2022/11/27 18:03:03 by smiro             #+#    #+#             */
+/*   Updated: 2022/11/27 18:03:06 by smiro            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PHILOSOPHER_H
-# define PHILOSOPHER_H
+#ifndef PHILOSOPHERS_H
+# define PHILOSOPHERS_H
 
 # include <string.h>
 # include <stdio.h>
@@ -22,29 +22,36 @@
 
 typedef struct s_philo
 {
-	int	philo_num;
-	int	left_index;
-	int	rigth_index;
-	int	times_ate;
+	int				philo_num;
+	int				left_index;
+	int				rigth_index;
+	long long		last_eat;
+	int				times_ate;
 	pthread_mutex_t	fork;
 	struct s_table	*table;
 }							t_philo;
 
 typedef struct s_table
 {
-	long long	start;
-	int	time_to_die;
-	int	time_to_eat;
-	int	time_to_sleep;
-	int	x_eat;
-	t_philo	*philo;
-	pthread_mutex_t writing;
+	int				total_philo;
+	long long		start;
+	int				time_to_die;
+	int				time_to_eat;
+	int				time_to_sleep;
+	int				x_eat;
+	t_philo			*philo;
+	pthread_mutex_t	writing;
+	pthread_mutex_t	meal_check;
 }							t_table;
 
-void	state(t_philo *philo, int n);
-void	init(t_table *table, int total, char **av);
+void		state(t_philo *philo, int n);
+int			init(t_table *table, int total, char **av);
 long long	get_time(void);
 long long	time_diff(long long past, long long current);
+void		ft_sleep(long long time);
+int			exit_error(int error);
+int			free_n_destroy(t_table *table);
+int			start_simulation(t_table *table);
 
 # define FORK 0
 # define EAT	1
