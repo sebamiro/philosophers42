@@ -6,11 +6,11 @@
 /*   By: smiro <smiro@student.42barcelona>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/27 18:29:50 by smiro             #+#    #+#             */
-/*   Updated: 2023/02/20 15:54:27 by smiro            ###   ########.fr       */
+/*   Updated: 2022/11/27 18:29:52 by smiro            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philosophers.h"
+#include "philo_bonus.h"
 
 static void	init_philo(t_table *table, int total)
 {
@@ -19,28 +19,31 @@ static void	init_philo(t_table *table, int total)
 	i = 0;
 	while (i < total)
 	{
-		pthread_mutex_init(&table->philo[i].fork, NULL);
 		table->philo[i].philo_num = i + 1;
-		table->philo[i].left_index = i;
-		table->philo[i].rigth_index = i + 1;
 		table->philo[i].table = table;
 		table->philo[i].last_eat = 0;
 		i++;
 	}
-	table->philo[total - 1].rigth_index = 0;
-	if (total == 2)
-	{
-		table->philo[0].left_index = 0;
-		table->philo[1].left_index = 1;
-	}
+}
+
+static int	init_semaphore(t_table *table)
+{
+	sem_unlink("/forks");
+	sem_unlink("/writing");
+	sem_unlink("/eat_check");
+	table->forks = sem_open("/forks", O_CREAT, S_IRWXU, table->total_philo);
+	table->writing = sem_open("/writing", O_CREAT, S_IRWXU, 1);
+	table->eat_check = sem_open("/eat_check", O_CREAT, S_IRWXU, 1);
+	if (table->forks <= 0 || table->writing <= 0 || table->eat_check <= 0)
+		return (1);
+	return (0);
 }
 
 int	init(t_table *table, int total, char **av)
 {
-	table->start = get_time();
 	table->total_philo = atoi(av[1]);
-	pthread_mutex_init(&table->writing, NULL);
-	pthread_mutex_init(&table->eat_check, NULL);
+	if (init_semaphore(table))
+		return (exit_error(2));
 	table->time_to_die = atoi(av[2]);
 	table->time_to_eat = atoi(av[3]);
 	table->time_to_sleep = atoi(av[4]);

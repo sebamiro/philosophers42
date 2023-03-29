@@ -10,13 +10,13 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philosophers.h"
+#include "philo_bonus.h"
 
 void	state(t_philo *philo, int n)
 {
 	int			temp;
 
-	pthread_mutex_lock(&philo->table->writing);
+	sem_wait(philo->table->writing);
 	if (n == 0 && philo->table->everyone_alive)
 		temp = printf("%lld %d has taken a fork\n",
 				time_diff(philo->table->start, get_time()), philo->philo_num);
@@ -34,7 +34,7 @@ void	state(t_philo *philo, int n)
 				time_diff(philo->table->start, get_time()), philo->philo_num);
 	if (temp == -1 && philo->table->everyone_alive)
 		return ;
-	pthread_mutex_unlock(&philo->table->writing);
+	sem_post(philo->table->writing);
 }
 
 long long	time_diff(long long past, long long current)

@@ -10,24 +10,12 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philosophers.h"
+#include "philo_bonus.h"
 
 int	free_n_destroy(t_table *table)
 {
-	int	i;
-
 	if (table->philo)
-	{
-		i = 0;
-		while (i < table->total_philo)
-		{
-			pthread_mutex_destroy(&table->philo[i].fork);
-			i++;
-		}
 		free(table->philo);
-	}
-	pthread_mutex_destroy(&table->eat_check);
-	pthread_mutex_destroy(&table->writing);
 	free(table);
 	return (0);
 }

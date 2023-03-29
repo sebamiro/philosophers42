@@ -10,95 +10,112 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philosophers.h"
+#include "philo_bonus.h"
 
-static void	check_death(t_philo *philo)
+static void	*check_death(t_philo *philo)
 {
-	int		i;
 	t_table	*table;
 
 	table = philo->table;
 	while (table->everyone_alive)
 	{
-		i = -1;
-		while (++i < table->total_philo && table->everyone_alive)
+		sem_wait(table->eat_check);
+		if (time_diff(philo->last_eat, get_time()) >= table->time_to_die)
 		{
-			pthread_mutex_lock(&table->eat_check);
-			if (time_diff(philo[i].last_eat, get_time()) >= table->time_to_die)
-			{
-				state(&philo[i], DIE);
-				table->everyone_alive = 0;
-			}
-			pthread_mutex_unlock(&table->eat_check);
-			usleep(50);
+			state(philo, DIE);
+			table->everyone_alive = 0;
+			sem_wait(table->writing);
+			exit(1);
 		}
+		sem_post(table->eat_check);
+		usleep(1000);
 		if (!(table->everyone_alive))
 			break ;
-		i = -1;
-		while (table->x_eat && philo[++i].times_ate == table->x_eat)
-			if (i == table->total_philo)
-				return ;
+		if (table->x_eat && philo->times_ate == table->x_eat)
+			break ;
 	}
+	return (NULL);
 }
 
 static void	philo_eats(t_philo *philo, t_table *table)
 {
-	pthread_mutex_lock(&table->philo[philo->left_index].fork);
+	sem_wait(table->forks);
 	state(philo, FORK);
-	pthread_mutex_lock(&table->philo[philo->rigth_index].fork);
+	sem_wait(table->forks);
 	state(philo, FORK);
-	pthread_mutex_lock(&table->eat_check);
+	sem_wait(table->eat_check);
 	state(philo, EAT);
 	(philo->times_ate)++;
 	philo->last_eat = get_time();
-	pthread_mutex_unlock(&table->eat_check);
+	sem_post(table->eat_check);
 	ft_sleep(table->time_to_eat);
-	pthread_mutex_unlock(&table->philo[philo->left_index].fork);
-	pthread_mutex_unlock(&table->philo[philo->rigth_index].fork);
+	sem_post(table->forks);
+	sem_post(table->forks);
 }
 
-static void	*action(t_philo *philo)
+static void	action(t_philo *philo)
 {
 	t_table	*table;
 
 	table = philo->table;
-	if (philo->philo_num % 2)
-		usleep(1500);
+	philo->last_eat = get_time();
+	pthread_create(&(philo->th), NULL, (void *(*)(void *))check_death, philo);
 	while (table->everyone_alive)
 	{
 		philo_eats(philo, table);
-		if ((table->x_eat && philo->times_ate == table->x_eat)
-			|| !(table->everyone_alive))
+		if ((table->x_eat && philo->times_ate == table->x_eat))
 			break ;
 		state(philo, SLEEP);
 		ft_sleep(table->time_to_sleep);
 		state(philo, THINK);
 	}
-	return (NULL);
+	pthread_join(philo->th, NULL);
+	if (!table->everyone_alive)
+		exit(1);
+	exit(0);
+}
+
+void	exit_simulation(t_table *table)
+{
+	int	status;
+	int	i;
+
+	i = 0;
+	while (i < table->total_philo)
+	{
+		waitpid(-1, &status, 0);
+		if (status)
+		{
+			i = -1;
+			while (++i < table->total_philo)
+				kill(table->philo[i].pid, SIGTERM);
+			break ;
+		}
+		i++;
+	}
+	sem_close(table->forks);
+	sem_close(table->writing);
+	sem_close(table->eat_check);
+	sem_unlink("/forks");
+	sem_unlink("/writing");
+	sem_unlink("/eat_check");
 }
 
 int	start_simulation(t_table *table)
 {
 	int			i;
-	pthread_t	*th;
 
-	th = (pthread_t *)malloc(sizeof(pthread_t) * table->total_philo);
-	if (!th)
-		return (2);
-	i = 0;
-	while (i < table->total_philo)
+	i = -1;
+	table->start = get_time();
+	while (++i < table->total_philo)
 	{
-		if (pthread_create(&th[i], NULL,
-				(void *(*)(void *))action, &table->philo[i]))
-			return (3);
-		table->philo[i].last_eat = get_time();
-		i++;
+		table->philo[i].pid = fork();
+		if (table->philo[i].pid < 0)
+			return (1);
+		if (table->philo[i].pid == 0)
+			action(&(table->philo[i]));
+		usleep(50);
 	}
-	check_death(table->philo);
-	while (--i > 0)
-		if (pthread_join(th[i], NULL))
-			return (4);
-	if (th)
-		free(th);
+	exit_simulation(table);
 	return (0);
 }

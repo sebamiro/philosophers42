@@ -6,11 +6,11 @@
 /*   By: smiro <smiro@student.42barcelona>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/27 18:02:55 by smiro             #+#    #+#             */
-/*   Updated: 2022/12/06 23:53:06 by smiro            ###   ########.fr       */
+/*   Updated: 2022/11/27 18:02:59 by smiro            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philosophers.h"
+#include "philo_bonus.h"
 
 int	main(int ac, char **av)
 {
@@ -23,7 +23,7 @@ int	main(int ac, char **av)
 	table = (t_table *)malloc(sizeof(t_table));
 	if (!table)
 		return (exit_error(2));
-	if (init(table, ft_atoi(av[1]), av))
+	if (init(table, atoi(av[1]), av))
 		return (free_n_destroy(table) && exit_error(2));
 	if (start_simulation(table))
 		return (free_n_destroy(table) && exit_error(2));

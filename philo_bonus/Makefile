@@ -10,11 +10,11 @@
 #                                                                              #
 # **************************************************************************** #
 
-NAME	=	philo
+NAME	=	philo_bonus
 
 MKFL	=	Makefile
 
-SRC		=	philosophers.c utils.c init.c error_handler.c simulation.c
+SRC		=	philo_bonus.c utils_bonus.c init_bonus.c error_handler_bonus.c simulation_bonus.c
 
 OBJS	=	$(SRC:.c=.o)
 

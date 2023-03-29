@@ -6,12 +6,12 @@
 /*   By: smiro <smiro@student.42barcelona>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/27 18:03:03 by smiro             #+#    #+#             */
-/*   Updated: 2023/02/20 16:01:41 by smiro            ###   ########.fr       */
+/*   Updated: 2022/11/27 18:03:06 by smiro            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PHILOSOPHERS_H
-# define PHILOSOPHERS_H
+#ifndef PHILO_BONUS_H
+# define PHILO_BONUS_H
 
 # include <string.h>
 # include <stdio.h>
@@ -19,15 +19,16 @@
 # include <sys/time.h>
 # include <pthread.h>
 # include <stdlib.h>
+# include <semaphore.h>
+# include <signal.h>
 
 typedef struct s_philo
 {
+	int				pid;
 	int				philo_num;
-	int				left_index;
-	int				rigth_index;
 	long long		last_eat;
 	int				times_ate;
-	pthread_mutex_t	fork;
+	pthread_t		th;
 	struct s_table	*table;
 }							t_philo;
 
@@ -40,9 +41,10 @@ typedef struct s_table
 	int				time_to_sleep;
 	int				x_eat;
 	int				everyone_alive;
+	sem_t			*forks;
+	sem_t			*writing;
+	sem_t			*eat_check;
 	t_philo			*philo;
-	pthread_mutex_t	writing;
-	pthread_mutex_t	eat_check;
 }							t_table;
 
 void		state(t_philo *philo, int n);
@@ -53,8 +55,8 @@ void		ft_sleep(long long time);
 int			exit_error(int error);
 int			free_n_destroy(t_table *table);
 int			start_simulation(t_table *table);
-int			ft_check(int ac, char **av);
 int			ft_atoi(const char *n);
+int			ft_check(int ac, char **av);
 
 # define FORK 0
 # define EAT	1
